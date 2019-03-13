@@ -1,0 +1,349 @@
+---
+layout: post
+title:  "二叉树(符号表)"
+date:   2019-03-12 22:21:49
+categories: algorithm
+tags: 算法 
+---
+
+## 1.目标
+
+- **构造一个以二叉树为基础的符号表(键值对)。其中它的键是可比较的元素，通过二叉树寻找到存储键值对的元素的位置，通过K，V两种泛型实现符号表api**
+```java
+  public static void main(String[] args) {
+        BinaryTree<Integer,String> st = new BinaryTree<Integer, String>();
+        //向符号表插入几个元素
+        st.put(5,"dqc");
+        st.put(2,"dcq");
+        st.put(7,"ccq");
+        st.put(1,"xccq");
+        st.put(3,"xcccq");
+        //打印符号表的大小、取得某个键的值、判断符号表是否存在某个键
+        System.out.println(st.size());//预测为5
+        System.out.println(st.get(1));//预测为xccq
+        System.out.println(st.contains(9));//预测为flase
+        //删除最小元素{1,xccq}
+        st.deleteMin();
+        //删除特定元素{2,dcq}
+        st.delete(2);
+        //使用迭代器打印所有元素，预测为dqc,ccq,xcccq
+        for (Object s : st){
+            System.out.println((String)s);
+        }
+        /**
+         * 预测打印输出
+         * 5
+         * xccq
+         * false
+         * ccq
+         * xcccq
+         * dqc
+         */
+    }
+```
+
+
+
+## 2.API
+
+
+- **维护变量：** 
+``` java
+private Node root;//维护二叉树根结点
+private int N;//维护二叉树的元素数量
+```
+
+|描述|方法|
+|-|-|
+|返回给定键的值|V get(K key)|
+|向二叉树中插入一个键值对|void put(K key,V value)|
+|删除二叉树中最小元素|void deleteMin()|
+|返回最小节点|void getMin()|
+|删除一个特定元素|void delete(K key)|
+|返回二叉树是否含有某个键的布尔值|boolean contains(K key)|
+|返回二叉树的元素个数|int size()|
+|返回迭代器|Iterator iterator()|
+
+- **分析:**
+
+>二叉树是一种在查找上比较具有优势的算法，因为像二分查找一样，从n个数中查到指定数字的操作次数为lgN(最理想情况)，如果是线性查找则为n；
+
+> 因为如同二分查找是需要有序排列一样，二叉树的构造也需要一定条件，这里需要二叉树的元素是可以比较的，即这个元素(节点Node)是继承了Comparable的.
+
+> 二叉树的删除和插入操作不会考虑到整个树的平衡，所以构造的树一般来说是不平衡的，所以我们不能说它的查找插入删除操作的时间复杂度为O(lgN)，只有平衡二叉树的时间复杂度为O(lgN)
+
+## 3.实现过程
+
+- 实现二叉树需要一个Node变量，在这里使用私有内部类
+
+```java
+    private class Node<K extends Comparable,V>{
+        public K key;
+        public V value;
+        public Node left;
+        public Node right;
+        public Node(K key,V value){
+            this.key = key;
+            this.value = value;
+        }
+    }
+```
+
+### 3.1 V get(K key)
+- 使用递归的方法，使代码更加清晰。主要思路就是通过参数key与节点的key值进行比较，如果较小则进入左子节点，较大则进入右子节点，等于则找到了节点，返回节点的值即可，如果没找到则返回null，说明二叉树无此节点。
+
+```java
+    public V get(K key){
+        Node x = get(root,key);
+        if (x==null) return null;
+        else return (V)x.value;
+    }
+    public Node get(Node x,K key){
+        if (x==null) return null;
+        if (key.compareTo(x.key)<0) return get(x.left,key);
+        else if (key.compareTo(x.key)>0) return get(x.right,key);
+        else return x;
+    }
+```
+
+### 3.2 void put(K key,V value)
+- 插入方法与查找类似，使用递归使节点往左子节点或右子节点移动，如果移动到无法继续移动，那么就找到了插入元素的位置。只需将父节点的指针指向新建的节点即可。最后将N++，维护N变量;
+
+```java
+  public void put(K key,V value){
+        root = put(root,key,value);
+        N++;
+    }
+    public Node put(Node x,K key,V value){
+        if (x==null) return new Node(key,value);
+        if (key.compareTo(x.key)<0) x.left = put(x.left,key,value);
+        else if (key.compareTo(x.key)>0) x.right = put(x.right,key,value);
+        else x.value=value;
+
+        return x;
+    }
+```
+
+### 3.3 void deleteMin()
+- 删除最小元素的方法与上面类似，一直向左移动节点，直到移动不动，便将父节点的指针指向该节点的右子节点(不管右子节点是否存在)
+```java
+   public void deleteMin(){
+        root = deleteMin(root);
+        N--;
+    }
+    public Node deleteMin(Node x){
+        if (x.left==null) return x.right;
+        x.left = deleteMin(x.left);
+
+        return x;
+    }
+```
+### 3.4 void getMin()
+- 类似，很简单取到树的最小元素
+```java
+  public Node getMin(){
+        return getMin(root);
+    }
+    public Node getMin(Node x){
+        if (x.left==null) return x;
+        return getMin(x.left);
+    }
+```
+
+### 3.5 void delete(K key)
+- 删除操作比较复杂。如果我们需要删除树中段的某个节点，那么还要考虑到它的子节点的转移情况。设想某个节点被删除，为了维持树的规则，我们需要一个节点来代替此节点，这个节点即为，比删除节点大一点的元素，即节点右子树的最小节点。所以，我们用getMin方法拿到这个右子树最小节点Rmin。拿到Rmin之后，我们用get()方法拿到删除元素的节点del。最后，我们需要将del改造成Rmin，并将del元素的右子树改造为右子树删除最小元素之后的树。
+```java
+    public void delete(K key){
+        Node del = get(root,key);
+        Node rmin = getMin(del.right);
+        del.value = rmin.value;
+        del.key = rmin.key;
+        del.right = deleteMin(del.right);
+        N--;
+    }
+```
+### 3.6 boolean contains(K key)
+- 判断是否存在于二叉树，即去取得这个元素
+```java
+public boolean contains(K key){
+        return get(key)!=null;
+    }
+```
+
+### 3.8 int size()
+- 一直在维护N
+```java
+public int size(){return N;}
+```
+### 3.9 Iterator iterator()
+- 为了遍历二叉树，利用Util.stack来保存，然后在用stack来迭代。然后就可以用for来迭代这个数据结构了。
+
+```java
+ public Iterator iterator() {
+        return new BinTreeIterator();
+    }
+    private class BinTreeIterator<V> implements Iterator{
+        Stack<V> stack;
+        public BinTreeIterator(){
+            stack = new Stack<V>();
+            buildIterator(root,stack);
+        }
+        public boolean hasNext() {
+            return !stack.isEmpty();
+        }
+        public V next() {
+            return stack.pop();
+        }
+        public void remove() { }
+
+        private void buildIterator(Node x,Stack stack){
+            if (x==null) return;
+            stack.add(x.value);
+
+            buildIterator(x.left,stack);
+            buildIterator(x.right,stack);
+        }
+
+    }
+```
+  
+## 4.代码
+
+```java
+import java.util.Iterator;
+import java.util.Stack;
+
+public class BinaryTree<K extends Comparable,V> implements Iterable{
+
+    private class Node<K extends Comparable,V>{
+        public K key;
+        public V value;
+        public Node left;
+        public Node right;
+        public Node(K key,V value){
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    private Node root;
+    private int N;
+
+    public V get(K key){
+        Node x = get(root,key);
+        if (x==null) return null;
+        else return (V)x.value;
+    }
+    public Node get(Node x,K key){
+        if (x==null) return null;
+        if (key.compareTo(x.key)<0) return get(x.left,key);
+        else if (key.compareTo(x.key)>0) return get(x.right,key);
+        else return x;
+    }
+    public void put(K key,V value){
+        root = put(root,key,value);
+        N++;
+    }
+    public Node put(Node x,K key,V value){
+        if (x==null) return new Node(key,value);
+        if (key.compareTo(x.key)<0) x.left = put(x.left,key,value);
+        else if (key.compareTo(x.key)>0) x.right = put(x.right,key,value);
+        else x.value=value;
+
+        return x;
+    }
+    public void deleteMin(){
+        root = deleteMin(root);
+        N--;
+    }
+    public Node deleteMin(Node x){
+        if (x.left==null) return x.right;
+        x.left = deleteMin(x.left);
+
+        return x;
+    }
+    public Node getMin(){
+        return getMin(root);
+    }
+    public Node getMin(Node x){
+        if (x.left==null) return x;
+        return getMin(x.left);
+    }
+    public void delete(K key){
+        Node del = get(root,key);
+        Node rmin = getMin(del.right);
+        del.value = rmin.value;
+        del.key = rmin.key;
+        del.right = deleteMin(del.right);
+        N--;
+    }
+    public int size(){
+        return N;
+    }
+    public boolean contains(K key){
+        return get(key)!=null;
+    }
+    public Iterator iterator() {
+        return new BinTreeIterator();
+    }
+    private class BinTreeIterator<V> implements Iterator{
+        Stack<V> stack;
+        public BinTreeIterator(){
+            stack = new Stack<V>();
+            buildIterator(root,stack);
+        }
+        public boolean hasNext() {
+            return !stack.isEmpty();
+        }
+        public V next() {
+            return stack.pop();
+        }
+        public void remove() { }
+
+        private void buildIterator(Node x,Stack stack){
+            if (x==null) return;
+            stack.add(x.value);
+
+            buildIterator(x.left,stack);
+            buildIterator(x.right,stack);
+        }
+
+    }
+
+
+
+
+    public static void main(String[] args) {
+        BinaryTree<Integer,String> st = new BinaryTree<Integer, String>();
+        //向符号表插入几个元素
+        st.put(5,"dqc");
+        st.put(2,"dcq");
+        st.put(7,"ccq");
+        st.put(1,"xccq");
+        st.put(3,"xcccq");
+        //打印符号表的大小、取得某个键的值、判断符号表是否存在某个键
+        System.out.println(st.size());//预测为5
+        System.out.println(st.get(1));//预测为xccq
+        System.out.println(st.contains(9));//预测为flase
+        //删除最小元素{1,xccq}
+        st.deleteMin();
+        //删除特定元素{2,dcq}
+        st.delete(2);
+        //使用迭代器打印所有元素，预测为dqc,ccq,xcccq
+        for (Object s : st){
+            System.out.println((String)s);
+        }
+        /**
+         * 预测打印输出
+         * 5
+         * xccq
+         * false
+         * ccq
+         * xcccq
+         * dqc
+         */
+    }
+
+}
+
+```

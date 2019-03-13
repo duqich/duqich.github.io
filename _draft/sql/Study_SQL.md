@@ -62,6 +62,10 @@ iterate
 
 
 join 
+**left join如果连接的表的条件出现一对多的情况就会增加表的大小，检测某个表是否出现一对多的情况的sql语句**
+```sql
+SELECT COMP_CODE FROM BIV_DIM_SYCOMPANY WHERE ISACTIVE=1 AND IS_INSALE=1 GROUP BY COMP_CODE HAVING COUNT(COMP_CODE)>1
+```
 merge into
 with as
 
