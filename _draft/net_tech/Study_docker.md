@@ -14,7 +14,9 @@ ubuntu:15.10:镜像名称。：后为tag
 /bin/bash ： 运行镜像后输入的命令
 # 4.第四条命令
 docker ps
+
 docker logs xxx
+
 docker stop xxx
 # 5.第五条命令
 docker commit -m="has update" -a="runoob" e218edb10161 runoob/ubuntu:v2

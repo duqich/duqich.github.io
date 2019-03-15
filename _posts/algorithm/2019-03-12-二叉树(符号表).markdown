@@ -18,6 +18,11 @@ tags: 算法
         st.put(7,"ccq");
         st.put(1,"xccq");
         st.put(3,"xcccq");
+
+        for (Object s : st){
+            System.out.print(s);
+        }
+
         //打印符号表的大小、取得某个键的值、判断符号表是否存在某个键
         System.out.println(st.size());//预测为5
         System.out.println(st.get(1));//预测为xccq
@@ -26,18 +31,18 @@ tags: 算法
         st.deleteMin();
         //删除特定元素{2,dcq}
         st.delete(2);
-        //使用迭代器打印所有元素，预测为dqc,ccq,xcccq
+        //使用迭代器打印所有元素
+
         for (Object s : st){
-            System.out.println((String)s);
+            System.out.print(s);
         }
+
         /**
          * 预测打印输出
-         * 5
+         * 527135
          * xccq
          * false
-         * ccq
-         * xcccq
-         * dqc
+         * 537
          */
     }
 ```
@@ -62,7 +67,7 @@ private int N;//维护二叉树的元素数量
 |删除一个特定元素|void delete(K key)|
 |返回二叉树是否含有某个键的布尔值|boolean contains(K key)|
 |返回二叉树的元素个数|int size()|
-|返回迭代器|Iterator iterator()|
+|返回层序遍历二叉树的迭代器|Iterator iterator()|
 
 - **分析:**
 
@@ -176,34 +181,34 @@ public boolean contains(K key){
 public int size(){return N;}
 ```
 ### 3.9 Iterator iterator()
-- 为了遍历二叉树，利用Util.stack来保存，然后在用stack来迭代。然后就可以用for来迭代这个数据结构了。
+- 为了遍历二叉树(层序)，利用queue队列来层序遍历二叉树并用另一个queue来保存，然后再用保存的queue来迭代。然后就可以用for来迭代这个数据结构了。
 
 ```java
  public Iterator iterator() {
         return new BinTreeIterator();
     }
     private class BinTreeIterator<V> implements Iterator{
-        Stack<V> stack;
+        Queue<Node> q;
+        Queue<V> iterator_queue;
         public BinTreeIterator(){
-            stack = new Stack<V>();
-            buildIterator(root,stack);
+            q = new Queue<Node>();
+            iterator_queue = new Queue<V>();
+
+            if (N!=0) q.enqueue(root);
+            while (!q.isEmpty()){
+                Node x = q.dequeue();
+                if (x!=null) iterator_queue.enqueue((V)x.value);
+                if(x.left!=null) q.enqueue(x.left);
+                if (x.right!=null) q.enqueue(x.right);
+            }
         }
         public boolean hasNext() {
-            return !stack.isEmpty();
+            return !iterator_queue.isEmpty();
         }
         public V next() {
-            return stack.pop();
+            return iterator_queue.dequeue();
         }
         public void remove() { }
-
-        private void buildIterator(Node x,Stack stack){
-            if (x==null) return;
-            stack.add(x.value);
-
-            buildIterator(x.left,stack);
-            buildIterator(x.right,stack);
-        }
-
     }
 ```
   
@@ -211,7 +216,6 @@ public int size(){return N;}
 
 ```java
 import java.util.Iterator;
-import java.util.Stack;
 
 public class BinaryTree<K extends Comparable,V> implements Iterable{
 
@@ -287,27 +291,27 @@ public class BinaryTree<K extends Comparable,V> implements Iterable{
         return new BinTreeIterator();
     }
     private class BinTreeIterator<V> implements Iterator{
-        Stack<V> stack;
+        Queue<Node> q;
+        Queue<K> iterator_queue;
         public BinTreeIterator(){
-            stack = new Stack<V>();
-            buildIterator(root,stack);
+            q = new Queue<Node>();
+            iterator_queue = new Queue<K>();
+
+            if (N!=0) q.enqueue(root);
+            while (!q.isEmpty()){
+                Node x = q.dequeue();
+                if (x!=null) iterator_queue.enqueue((K)x.key);
+                if(x.left!=null) q.enqueue(x.left);
+                if (x.right!=null) q.enqueue(x.right);
+            }
         }
         public boolean hasNext() {
-            return !stack.isEmpty();
+            return !iterator_queue.isEmpty();
         }
-        public V next() {
-            return stack.pop();
+        public K next() {
+            return iterator_queue.dequeue();
         }
         public void remove() { }
-
-        private void buildIterator(Node x,Stack stack){
-            if (x==null) return;
-            stack.add(x.value);
-
-            buildIterator(x.left,stack);
-            buildIterator(x.right,stack);
-        }
-
     }
 
 
@@ -321,6 +325,11 @@ public class BinaryTree<K extends Comparable,V> implements Iterable{
         st.put(7,"ccq");
         st.put(1,"xccq");
         st.put(3,"xcccq");
+
+        for (Object s : st){
+            System.out.print(s);
+        }
+
         //打印符号表的大小、取得某个键的值、判断符号表是否存在某个键
         System.out.println(st.size());//预测为5
         System.out.println(st.get(1));//预测为xccq
@@ -329,21 +338,19 @@ public class BinaryTree<K extends Comparable,V> implements Iterable{
         st.deleteMin();
         //删除特定元素{2,dcq}
         st.delete(2);
-        //使用迭代器打印所有元素，预测为dqc,ccq,xcccq
+        //使用迭代器打印所有元素
+
         for (Object s : st){
-            System.out.println((String)s);
+            System.out.print(s);
         }
+
         /**
          * 预测打印输出
-         * 5
+         * 527135
          * xccq
          * false
-         * ccq
-         * xcccq
-         * dqc
+         * 537
          */
-    }
-
 }
 
 ```
