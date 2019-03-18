@@ -16,6 +16,7 @@ tags: 算法
     private int N;
 ```
 - **需要一个普通节点类**
+
 ```java
 public class Node<T> {
     T data;
@@ -26,7 +27,6 @@ public class Node<T> {
     public Node(){}
 
 }
-
 ```
 
 |描述|方法|

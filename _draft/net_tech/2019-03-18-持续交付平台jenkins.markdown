@@ -1,0 +1,60 @@
+---
+layout: post
+title:  "持续交付平台jenkins"
+date:   2015-03-08 22:21:49
+categories: net_tech
+tags: 网络技术 
+---
+
+## 目的
+
+有一些项目在线上运行时，或者集群分布时。如果改动源代码并想重新部署上线的时候，我们会重新编译并将war包scp到线上服务器，并重启容器服务器如tomcat；但大多数项目都是集群分布，部署到每一个项目就是一件非常重复并无聊的工作。
+
+- jenkins的用处就是检测一个公共代码库如git、svn。如果有新版本，就自动编译一次并生成war包，最后再将这个新的war包分发到各个容器服务器，并重启；这样一来，线上服务器就会跟随代码库的改变而自动上线；
+
+- 如果代码在github，我们的jenkins环境必须要有maven、git。
+
+- jenkins可以独立布置在一个服务器。通过远程分发到各个ip
+
+
+## 步骤
+
+- 1.我将jenkin环境包括mvn、git部署到一个docker容器,避免复杂的配置工作
+```
+docker pull duqich/jenkins:jksmvngit
+docker run -p 8080:8080 -p 50000:50000 duqich/jenkins:jksmvngit jenkins.sh
+```
+- 2.浏览器输入localhost:8080进入jenkins控制页面
+
+- 3.只安装的插件github integration\maven integration\deploy to containers
+
+- 4. 在jenkins里的系统设置/全局工具设置里面将jdk、git、maven的路径设置好
+
+- 5.jenkins创建一个新项目,填写编译后war包的地址target/项目名，填写项目名，输入git源代码地址，然后输入maven编译命令clean package，然后设置编译好后的操作:deploy to containers，这里需要填tomcat的地址(填写线上tomcat地址)和tomcat的账号密码，我们先填账号：deploy  密码tomcat 然后设置你的构建规则，即什么时候构建(可以是代码库每次更新或者设置多长的时间)
+然后这个jenkins项目就算基本完成
+
+- 6.我再用docker部署一个tomcat
+```
+docker pull tomcat
+```
+然后进入容器`docker run -it -p 8081:8080 tomcat:latest bash`
+然后我需要配置tomcat的账号密码，因为jenkins要发war包过来。
+修改文件/usr/local/tomcat/conf/tomcat-users.xml
+
+添加内容:
+```
+  <role rolename="tomcat"/>
+  <role rolename="role1"/>
+  <role rolename="manager-gui" />
+  <role rolename="manager-script" />
+  <role rolename="manager-status" />
+  <user username="tomcat" password="tomcat" roles="tomcat"/>
+  <user username="both" password="tomcat" roles="tomcat,role1"/>
+  <user username="role1" password="tomcat" roles="role1"/>
+  <user username="deploy" password="tomcat" roles="manager-gui,manager-script,manager-status" />
+```
+所以我们的账号密码是deploy/tomcat
+
+- 7.这时jenkins和tomcat就已经设置好了。
+
+- 此时的tomcat什么都没有，我们直接在jenkins操作页面点立刻构建就可以编译github的代码并传war包到远程tomcat，并重启了
