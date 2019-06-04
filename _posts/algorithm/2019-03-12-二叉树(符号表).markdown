@@ -8,7 +8,7 @@ tags: 算法
 
 ## 1.目标
 
-- **构造一个以二叉树为基础的符号表(键值对)。其中它的键是可比较的元素，通过二叉树寻找到存储键值对的元素的位置，通过K，V两种泛型实现符号表api**
+- **构造sb一个以二叉树为基础的符号表(键值对)。其中它的键是可比较的元素，通过二叉树寻找到存储键值对的元素的位置，通过K，V两种泛型实现符号表api**
 ```java
   public static void main(String[] args) {
         BinaryTree<Integer,String> st = new BinaryTree<Integer, String>();

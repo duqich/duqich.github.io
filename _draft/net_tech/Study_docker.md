@@ -26,3 +26,7 @@ docker commit -m="has update" -a="runoob" e218edb10161 runoob/ubuntu:v2
 -a:author
 e218edb10161:镜像名称
 runoob/ubuntu:v2:镜像名:标签
+
+# 容器之间共享网络
+docker network create netname
+docker run --net netname img

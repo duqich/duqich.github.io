@@ -153,3 +153,16 @@ new Vue({
 
 </script>
 ```
+
+
+### 15.vue.$nextTick
+
+```js
+axios.get(url).then(function(response) {
+                            vue.categories = response.data;
+                            vue.$nextTick(function(){
+                                //要等渲染结束之后，才来进行监听，否则他们都没有被创建出来，监听也没有意义呀
+                                homePageRegisterListeners();
+                            })
+                        });
+```
